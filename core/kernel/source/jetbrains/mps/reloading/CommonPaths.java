@@ -26,19 +26,28 @@ import jetbrains.mps.vfs.path.UniPath;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import sun.misc.Launcher;
+import sun.misc.Unsafe;
+//import sun.misc.Launcher;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class CommonPaths {
   private static final Logger LOG = LogManager.getLogger(CommonPaths.class);
@@ -176,8 +185,116 @@ public final class CommonPaths {
     }
   }
 
+  @SuppressWarnings({ "restriction", "unchecked" })
+  public static URL[] getUrls(ClassLoader classLoader) {
+    if (classLoader == null) {
+      return new URL[0];
+    }
+
+    if (classLoader instanceof URLClassLoader) {
+      return ((URLClassLoader) classLoader).getURLs();
+    }
+
+    // jdk9
+    if (classLoader.getClass().getName().startsWith("jdk.internal.loader.ClassLoaders$")) {
+      try {
+        Field field = Unsafe.class.getDeclaredField("theUnsafe");
+        field.setAccessible(true);
+        Unsafe unsafe = (Unsafe) field.get(null);
+
+        // jdk.internal.loader.ClassLoaders.AppClassLoader.ucp
+        Field ucpField = classLoader.getClass().getDeclaredField("ucp");
+        long ucpFieldOffset = unsafe.objectFieldOffset(ucpField);
+        Object ucpObject = unsafe.getObject(classLoader, ucpFieldOffset);
+
+        // jdk.internal.loader.URLClassPath.path
+        Field pathField = ucpField.getType().getDeclaredField("path");
+        long pathFieldOffset = unsafe.objectFieldOffset(pathField);
+        ArrayList<URL> path = (ArrayList<URL>) unsafe.getObject(ucpObject, pathFieldOffset);
+
+        return path.toArray(new URL[path.size()]);
+      } catch (Exception e) {
+        e.printStackTrace();
+        return new URL[0];
+      }
+    }
+    return new URL[0];
+  }
+
+  private static URL[] getBootstrapUrls(Object base) {
+//    //Module mod = base.getClass().getModule();
+//    Class<?> baseClass = base.getClass();
+//    try {
+//    Object mod = baseClass.getClass().getMethod("getModule").invoke(baseClass);
+//    Object desc = mod.getClass().getMethod("getDescriptor").invoke(mod);
+//    Set<Object> exports = (Set<Object>) desc.getClass().getMethod("exports").invoke(desc);
+//    Stream<String> targetStream = exports.stream().flatMap(export -> {
+//      try {
+//        Set<String> targets = (Set<String>) export.getClass().getMethod("targets").invoke(export);
+//        return targets.stream();
+//      } catch (NoSuchMethodException e) {
+//        e.printStackTrace();
+//      } catch (IllegalAccessException e) {
+//        e.printStackTrace();
+//      } catch (InvocationTargetException e) {
+//        e.printStackTrace();
+//      }
+//
+//      return Stream.empty();
+//    });
+//
+//      List<URL> result = targetStream
+//                             .map(t -> {
+//                               try {
+//                                 return new URL(t);
+//                               } catch (MalformedURLException e) {
+//                                 e.printStackTrace();
+//                                 return null;
+//                               }
+//                             })
+//                             .filter(Objects::nonNull)
+//                             .collect(Collectors.toList());
+//
+//      return result.toArray(new URL[result.size()]);
+//
+//    } catch (IllegalAccessException e) {
+//      e.printStackTrace();
+//    } catch (InvocationTargetException e) {
+//      e.printStackTrace();
+//    } catch (NoSuchMethodException e) {
+//      e.printStackTrace();
+//    }
+
+//    List<URL> result = new ArrayList<>();
+//
+//    result.addAll(Arrays.asList(getUrls(base.getClass().getClassLoader())));
+//    result.addAll(Arrays.asList(getUrls(ourClassPathCachingFacility.getClass().getClassLoader())));
+//    result.addAll(Arrays.asList(getUrls(ClassLoader.getSystemClassLoader())));
+//    try {
+//      result.addAll(Arrays.asList(getUrls((ClassLoader) ClassLoader.class.getMethod("getPlatformClassLoader").invoke(null))));
+//    } catch (IllegalAccessException e) {
+//      e.printStackTrace();
+//    } catch (InvocationTargetException e) {
+//      e.printStackTrace();
+//    } catch (NoSuchMethodException e) {
+//      e.printStackTrace();
+//    }
+//
+//    return result.toArray(new URL[result.size()]);
+    try {
+      return new URL[] {
+          new URL("file:///c:/Program%20Files/Java/jdk1.8.0_92/jre/lib/rt.jar"),
+          new URL("file:///c:/Program%20Files/Java/jdk1.8.0_92/jre/lib/jsse.jar"),
+          new URL("file:///c:/Program%20Files/Java/jdk1.8.0_92/jre/lib/jce.jar"),
+          new URL("file:///c:/Program%20Files/Java/jdk1.8.0_92/jre/lib/charsets.jar")
+      };
+    } catch (MalformedURLException e) {
+      return new URL[0];
+    }
+  }
+
   private static RealClassPathItem findBootstrapJarByName(String name) {
-    for (URL url : Launcher.getBootstrapClassPath().getURLs()) {
+    for (URL url : getBootstrapUrls(name)) {
       try {
         File file = new File(url.toURI());
         if (!file.exists()) {

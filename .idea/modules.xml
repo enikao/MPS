@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$USER_HOME$/graal/ideaProject/Truffle.iml" filepath="$USER_HOME$/graal/ideaProject/Truffle.iml" />
       <module fileurl="file://$PROJECT_DIR$/editor/actions-runtime/actions-runtime.iml" filepath="$PROJECT_DIR$/editor/actions-runtime/actions-runtime.iml" group="editor" />
       <module fileurl="file://$PROJECT_DIR$/core/analyzers/analyzers.iml" filepath="$PROJECT_DIR$/core/analyzers/analyzers.iml" group="core" />
       <module fileurl="file://$PROJECT_DIR$/core/tool/ant/ant-mps.iml" filepath="$PROJECT_DIR$/core/tool/ant/ant-mps.iml" group="ant" />
