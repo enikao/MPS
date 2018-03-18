@@ -99,7 +99,7 @@ class InternalJavaCompiler {
    * @return eclipse java compiler with sources attached
    */
   private EclipseJavaCompiler collectSources() {
-    EclipseJavaCompiler compiler = new EclipseJavaCompiler();
+    EclipseJavaCompiler compiler = new EclipseJavaCompiler(new File(getJavaFacet(myModulesContainer.getModules().iterator().next()).getClassesGen().toPath().toString()));
     for (SModule module : myModulesContainer.getModules()) {
       if (!myModulesContainer.areClassesUpToDate(module)) {
         for (JavaFile javaFile : myModulesContainer.getSources(module).getFilesToCompile()) {

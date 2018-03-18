@@ -25,17 +25,28 @@ import org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.eclipse.jdt.internal.compiler.Compiler;
 import org.eclipse.jdt.internal.compiler.ICompilerRequestor;
 import org.eclipse.jdt.internal.compiler.IErrorHandlingPolicy;
+import org.eclipse.jdt.internal.compiler.apt.dispatch.BatchAnnotationProcessorManager;
+import org.eclipse.jdt.internal.compiler.apt.dispatch.BatchProcessingEnvImpl;
 import org.eclipse.jdt.internal.compiler.batch.CompilationUnit;
+import org.eclipse.jdt.internal.compiler.batch.Main;
 import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 import org.jetbrains.annotations.NotNull;
 
+import javax.tools.StandardJavaFileManager;
+import javax.tools.StandardLocation;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * MPS java compiler class, which relies on the eclipse compiler {@link Compiler} functionality.
@@ -45,6 +56,7 @@ import java.util.Map;
 public class EclipseJavaCompiler {
   private Map<String, CompilationUnit> myCompilationUnits = new HashMap<>();
   private Map<String, byte[]> myClasses = new HashMap<>();
+  private File myOutputPath;
 
   @NotNull
   private static Map<String, String> addPresetCompilerOptions(@NotNull JavaCompilerOptions customCompilerOptions) {
@@ -54,11 +66,18 @@ public class EclipseJavaCompiler {
     compilerOptions.put(CompilerOptions.OPTION_Compliance, actualJavaTargetVersion);
     compilerOptions.put(CompilerOptions.OPTION_TargetPlatform, actualJavaTargetVersion);
 
+    compilerOptions.put(CompilerOptions.OPTION_Process_Annotations, CompilerOptions.ENABLED);
+    compilerOptions.put(CompilerOptions.OPTION_GenerateClassFiles, CompilerOptions.ENABLED);
 
     compilerOptions.put(CompilerOptions.OPTION_LocalVariableAttribute, CompilerOptions.GENERATE);
     compilerOptions.put(CompilerOptions.OPTION_LineNumberAttribute, CompilerOptions.GENERATE);
     compilerOptions.put(CompilerOptions.OPTION_SourceFileAttribute, CompilerOptions.GENERATE);
     return compilerOptions;
+  }
+
+  public EclipseJavaCompiler(File outputPath) {
+
+    myOutputPath = outputPath;
   }
 
   public void addSource(String classFqName, String text) {
@@ -71,11 +90,59 @@ public class EclipseJavaCompiler {
     compile(classPath, JavaCompilerOptionsComponent.DEFAULT_JAVA_COMPILER_OPTIONS);
   }
 
+  private Object loadProcessor(String fqn) {
+    try {
+      ClassLoader classLoader1 = Thread.currentThread().getContextClassLoader();
+      Class<?> clazz1 = classLoader1.loadClass(fqn);
+      Object obj1 = clazz1.newInstance();
+      return obj1;
+    } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
   public void compile(IClassPathItem classPath, @NotNull JavaCompilerOptions customCompilerOptions) {
     Map<String, String> compilerOptions = addPresetCompilerOptions(customCompilerOptions);
 
     CompilerOptions options = new CompilerOptions(compilerOptions);
     Compiler compiler = new Compiler(new MyNameEnvironment(classPath), new ProceedingOnErrorsPolicy(), options, new RelayingRequestor(), new DefaultProblemFactory());
+
+    //Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+      EclipseJavaCompiler self = this;
+      final BatchAnnotationProcessorManager annotationProcessorManager = new BatchAnnotationProcessorManager() {
+        @Override
+        public void configure(Object batchCompiler, String[] commandLineArguments) {
+          super.configure(batchCompiler, commandLineArguments);
+          try {
+            StandardJavaFileManager fileManager = (StandardJavaFileManager) ((BatchProcessingEnvImpl) this._processingEnv).getFileManager();
+            fileManager.setLocation(StandardLocation.CLASS_OUTPUT, Collections.singleton(self.myOutputPath));
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }
+      };
+
+      Main batchCompiler = new Main(new PrintWriter(System.out), new PrintWriter(System.err), false);
+      batchCompiler.batchCompiler = compiler;
+
+      String[] processors = new String[] {
+          "com.oracle.truffle.dsl.processor.TruffleProcessor",
+          "com.oracle.truffle.dsl.processor.LanguageRegistrationProcessor",
+          "com.oracle.truffle.dsl.processor.InstrumentRegistrationProcessor",
+          "com.oracle.truffle.dsl.processor.verify.VerifyCompilationFinalProcessor",
+          "com.oracle.truffle.object.dsl.processor.LayoutProcessor",
+          "com.oracle.truffle.dsl.processor.OptionProcessor",
+          "com.oracle.truffle.dsl.processor.InstrumentableProcessor",
+//          "com.oracle.truffle.dsl.processor.interop.InteropDSLProcessor",
+          "com.oracle.truffle.dsl.processor.verify.VerifyTruffleProcessor"
+      };
+
+    annotationProcessorManager.setProcessors(Arrays.stream(processors).map(s -> loadProcessor(s)).filter(Objects::nonNull).toArray());
+    annotationProcessorManager.configure(batchCompiler, new String[]{"-processor", Arrays.stream(processors).collect(Collectors.joining(","))});
+      compiler.annotationProcessorManager = annotationProcessorManager;
+    // annotationProcessorManager.setErr(co);
+    // annotationProcessorManager.setOut();
 //    compiler.options.verbose = true;
 
     try {

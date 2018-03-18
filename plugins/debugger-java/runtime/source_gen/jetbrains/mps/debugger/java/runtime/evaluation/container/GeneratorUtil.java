@@ -19,6 +19,8 @@ import jetbrains.mps.internal.collections.runtime.Sequence;
 import jetbrains.mps.baseLanguage.closures.runtime._FunctionTypes;
 import jetbrains.mps.compiler.EclipseJavaCompiler;
 import jetbrains.mps.smodel.resources.FResource;
+
+import java.io.File;
 import java.util.Map;
 import jetbrains.mps.internal.collections.runtime.MapSequence;
 import jetbrains.mps.text.TextUnit;
@@ -52,7 +54,7 @@ public class GeneratorUtil {
         String source = null;
         final String desiredSourceUnitName = className + ".java";
         if (successful) {
-          EclipseJavaCompiler javaCompiler = new EclipseJavaCompiler();
+          EclipseJavaCompiler javaCompiler = new EclipseJavaCompiler(new File("bla"));
           for (FResource res : Sequence.fromIterable(result.output()).ofType(FResource.class)) {
             Map<String, Object> contents = res.contents();
             for (String unitName : MapSequence.fromMap(contents).keySet()) {

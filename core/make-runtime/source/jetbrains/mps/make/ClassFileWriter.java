@@ -124,6 +124,12 @@ public class ClassFileWriter {
     String containerClassName = getContainerClassName(fqName); // the name up to dollar sign
     SModule moduleForClass = myModulesContainer.getModuleContainingClass(containerClassName);
     if (moduleForClass == null) {
+      moduleForClass = myModulesContainer.getModuleContainingClass(containerClassName.replaceAll("Gen$", ""));
+    }
+    if (moduleForClass == null) {
+      moduleForClass = myModulesContainer.getModuleContainingClass(containerClassName.replaceAll("NodeGen$", ""));
+    }
+    if (moduleForClass == null) {
       mySender.error(String.format(MODULE_FOR_CLASS_NOT_FOUND, fqName));
     } else {
       myChangedModulesTracker.addChanged(moduleForClass);
