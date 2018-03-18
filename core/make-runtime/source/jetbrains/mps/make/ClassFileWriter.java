@@ -130,6 +130,9 @@ public class ClassFileWriter {
       moduleForClass = myModulesContainer.getModuleContainingClass(containerClassName.replaceAll("NodeGen$", ""));
     }
     if (moduleForClass == null) {
+      moduleForClass = myModulesContainer.getModuleContainingClass(containerClassName.replaceAll("Wrapper$", ""));
+    }
+    if (moduleForClass == null) {
       mySender.error(String.format(MODULE_FOR_CLASS_NOT_FOUND, fqName));
     } else {
       myChangedModulesTracker.addChanged(moduleForClass);
