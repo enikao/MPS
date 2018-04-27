@@ -3,13 +3,12 @@ This fork contains hacks to
 * Run MPS with a Java9 runtime (*NOT* a Java9 compiler)
 * Enable Java Annotation Processors for the built-in Java compiler
 
-This fork contains a lot of hard-coded paths valid only in my local development environment and will definitely *NOT run out-of-the-box!*
+This fork contains a lot of hard-coded paths valid only in my local development environment and will definitely **NOT run out-of-the-box!**
 
 ----
 
 
 
-[![official JetBrains project](http://jb.gg/badges/official-flat-square.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 JetBrains MPS
 =============
 
