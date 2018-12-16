@@ -34,6 +34,7 @@
     <import index="vndm" ref="6ed54515-acc8-4d1e-a16c-9fd6cfe951ea/java:jetbrains.mps.smodel.language(MPS.Core/)" />
     <import index="hfuk" ref="r:b25dd364-bc3f-4a66-97d1-262009610c5e(jetbrains.mps.make)" />
     <import index="mhfm" ref="3f233e7f-b8a6-46d2-a57f-795d56775243/java:org.jetbrains.annotations(Annotations/)" />
+    <import index="i7ke" ref="r:6a51d398-9e61-4cf1-8ca1-72244a902483(de.nikostotz.mps.annotationprocessorfacet.compiler)" />
     <import index="yyf4" ref="8865b7a8-5271-43d3-884c-6fd1d9cfdd34/java:org.jetbrains.mps.openapi.util(MPS.OpenAPI/)" implicit="true" />
   </imports>
   <registry>
@@ -803,8 +804,8 @@
         <node concept="2lGYhJ" id="bvkaYAFSqh" role="2pHZQ9">
           <property role="3dDGau" value="false" />
           <property role="TrG5h" value="options" />
-          <node concept="3uibUv" id="26I8knZG$C4" role="2lK19J">
-            <ref role="3uigEE" to="l46t:~JavaCompilerOptions" resolve="JavaCompilerOptions" />
+          <node concept="3uibUv" id="6wfBxMgonSR" role="2lK19J">
+            <ref role="3uigEE" to="i7ke:6wfBxMgonRU" resolve="JavaCompilerOptions" />
           </node>
         </node>
       </node>

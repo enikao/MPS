@@ -19,6 +19,7 @@ import com.intellij.compiler.instrumentation.FailSafeClassReader;
 import com.intellij.compiler.instrumentation.InstrumentationClassFinder;
 import com.intellij.compiler.instrumentation.InstrumenterClassWriter;
 import com.intellij.compiler.notNullVerification.NotNullVerifyingInstrumenter;
+import jetbrains.mps.compiler.MyClassFile;
 import jetbrains.mps.make.CompilationErrorsHandler.ClassesErrorsTracker;
 import jetbrains.mps.project.MPSExtentions;
 import jetbrains.mps.util.NameUtil;
@@ -29,6 +30,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.mps.openapi.module.SModule;
 import org.jetbrains.org.objectweb.asm.ClassWriter;
 
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.TypeElement;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -127,6 +131,19 @@ public class ClassFileWriter {
     String fqName = convertCompoundToFqName(cf.getCompoundName());
     String containerClassName = getContainerClassName(fqName); // the name up to dollar sign
     SModule moduleForClass = myModulesContainer.getModuleContainingClass(containerClassName);
+    if (moduleForClass == null && cf instanceof MyClassFile) {
+      for (Element org : ((MyClassFile) cf).getOriginatingElements()) {
+        Element e = org;
+        if (e instanceof TypeElement && e.getKind() == ElementKind.CLASS) {
+           String originatingClassName = ((TypeElement) e).getQualifiedName().toString();
+            moduleForClass = myModulesContainer.getModuleContainingClass(originatingClassName);
+            if (moduleForClass != null) {
+              break;
+            }
+          }
+        e = e.getEnclosingElement();
+      }
+    }
     if (moduleForClass == null) {
       mySender.error(String.format(MODULE_FOR_CLASS_NOT_FOUND, fqName));
     } else {

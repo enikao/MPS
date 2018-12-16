@@ -17,6 +17,7 @@
       <module fileurl="file://$PROJECT_DIR$/core/components/components.iml" filepath="$PROJECT_DIR$/core/components/components.iml" group="core" />
       <module fileurl="file://$PROJECT_DIR$/plugins/console/console.iml" filepath="$PROJECT_DIR$/plugins/console/console.iml" />
       <module fileurl="file://$PROJECT_DIR$/core/dataFlowRuntime/dataflow-rt.iml" filepath="$PROJECT_DIR$/core/dataFlowRuntime/dataflow-rt.iml" group="core" />
+      <module fileurl="file://$PROJECT_DIR$/../mps-annotation-processor-facet/solutions/de.nikostotz.mps.annotationprocessor.test/de.nikostotz.mps.annotationprocessor.test.iml" filepath="$PROJECT_DIR$/../mps-annotation-processor-facet/solutions/de.nikostotz.mps.annotationprocessor.test/de.nikostotz.mps.annotationprocessor.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/plugins/debugger-api/api/debugger-api-api.iml" filepath="$PROJECT_DIR$/plugins/debugger-api/api/debugger-api-api.iml" group="plugins/debugger/debugger-api" />
       <module fileurl="file://$PROJECT_DIR$/plugins/debugger-api/runtime/debugger-api-runtime.iml" filepath="$PROJECT_DIR$/plugins/debugger-api/runtime/debugger-api-runtime.iml" group="plugins/debugger/debugger-api" />
       <module fileurl="file://$PROJECT_DIR$/plugins/debugger-java/api/debugger-java-api.iml" filepath="$PROJECT_DIR$/plugins/debugger-java/api/debugger-java-api.iml" group="plugins/debugger/debugger-java" />

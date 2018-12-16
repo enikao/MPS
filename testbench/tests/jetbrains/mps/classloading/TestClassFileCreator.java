@@ -52,7 +52,7 @@ public class TestClassFileCreator {
   }
 
   public void create() {
-    EclipseJavaCompiler compiler = new EclipseJavaCompiler();
+    EclipseJavaCompiler compiler = new EclipseJavaCompiler((newSource, originatingSource) -> {});
     compiler.addSource(myTestClassName, myTestSourceCode);
     MyCompilationResultListener listener = new MyCompilationResultListener();
     compiler.addCompilationResultListener(listener);
